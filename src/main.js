@@ -474,7 +474,8 @@ let current = 0,
 
   detailOpen = false,
 
-  touchStart = 0;
+  touchStart = 0,
+  touchStartTarget = null;
 
 const app = $("#app");
 
@@ -889,37 +890,27 @@ window.addEventListener(
 
 );
 
-window.addEventListener(
+window.addEventListener("touchstart", (e) => {
+  touchStart = e.changedTouches[0].clientY;
+  touchStartTarget = e.target;
+}, { passive: true });
 
-  "touchstart",
+window.addEventListener("touchend", (e) => {
+  if (!entered || detailOpen) return;
 
-  (e) => {
+  // Don't turn normal content scrolling into scene navigation.
+  if (
+    touchStartTarget?.closest(
+      ".content, .detail, .mobile-nav, .menu-btn"
+    )
+  ) return;
 
-    touchStart = e.changedTouches[0].clientY;
+  const d = touchStart - e.changedTouches[0].clientY;
 
-  },
-
-  { passive: true },
-
-);
-
-window.addEventListener(
-
-  "touchend",
-
-  (e) => {
-
-    if (!entered || detailOpen) return;
-
-    const d = touchStart - e.changedTouches[0].clientY;
-
-    if (Math.abs(d) > 60) go(current + (d > 0 ? 1 : -1));
-
-  },
-
-  { passive: true },
-
-);
+  if (Math.abs(d) > 60) {
+    go(current + (d > 0 ? 1 : -1));
+  }
+}, { passive: true });
 
 window.addEventListener("pointermove", (e) => {
 
